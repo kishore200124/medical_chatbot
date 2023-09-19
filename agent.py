@@ -29,13 +29,14 @@ class Agent:
             # Check if the response contains "I don't know" and replace it with the desired message
             if "I don't know." in response:
                 response = "Sorry, I am yet to be trained on this topic. Please try some other question related to the uploaded file."
-    
-            # Include the reference to the PDF file if available
-            if self.current_pdf:
-                response += f" (Ref: {self.current_pdf})"
+            else:
+                # Include the reference to the PDF file if available
+                if self.current_pdf:
+                    response += f" (Ref: {self.current_pdf})"
                 
             self.chat_history.append((question, response))
         return response
+
 
 
 
