@@ -47,42 +47,39 @@ def process_input():
         # Check if user input mentions "PDF" or "document" to consider it related to the PDF
         if any(keyword in user_text.lower() for keyword in ["pdf", "document"]):
             with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
-                agent_text = st.session_state["agent"].ask(user_text)
+                # Process each PDF file and mention the source
+                for file in st.session_state["file_uploader"]:
+                    file_name = file.name
+                    agent_text = st.session_state["agent"].ask(user_text, reference=file_name)
+                    st.session_state["messages"].append((f"Answer from {file_name}:", False))
+                    st.session_state["messages"].append((agent_text, False))
         else:
             agent_text = "Sorry, I am yet to be trained on this topic. Please try some other question related to the uploaded file."
 
         st.session_state["messages"].append((user_text, True))
-        st.session_state["messages"].append((agent_text, False))
-
 
 def read_and_save_file():
     st.session_state["agent"].forget()
     st.session_state["messages"] = []
     st.session_state["user_input"] = ""
 
+    pdf_names = []  # Create a list to store the PDF file names
+
     for file in st.session_state["file_uploader"]:
+        file_name = file.name  # Get the PDF file name
+        pdf_names.append(file_name)  # Add the file name to the list
+
         with tempfile.NamedTemporaryFile(delete=False) as tf:
             tf.write(file.getbuffer())
             file_path = tf.name
 
-        with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
-            st.session_state["agent"].ingest(file_path)
+        with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file_name}"):
+            st.session_state["agent"].ingest(file_path, reference=file_name)  # Pass the file name as a reference
         os.remove(file_path)
-# def read_and_save_file():
-#     st.session_state["agent"].forget()
-#     st.session_state["messages"] = []
-#     st.session_state["user_input"] = ""
 
-#     for file in st.session_state["file_uploader"]:
-#         file_name = file.name  # Get the PDF file name
-#         with tempfile.NamedTemporaryFile(delete=False) as tf:
-#             tf.write(file.getbuffer())
-#             file_path = tf.name
-
-#         with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file_name}"):
-#             st.session_state["agent"].ingest(file_path, reference=file_name)  # Pass the file name as a reference
-#         os.remove(file_path)
-
+    # Construct a message mentioning the PDF file names
+    pdf_message = f"I have ingested {len(pdf_names)} PDF files: {', '.join(pdf_names)}"
+    st.session_state["messages"].append((pdf_message, False))
 
 def is_openai_api_key_set() -> bool:
     return len(st.session_state["OPENAI_API_KEY"]) > 0
