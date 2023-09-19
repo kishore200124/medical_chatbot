@@ -43,11 +43,17 @@ def display_messages():
 def process_input():
     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
         user_text = st.session_state["user_input"].strip()
-        with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
-            agent_text = st.session_state["agent"].ask(user_text)
+        
+        # Check if the user's question is relevant to the uploaded PDF
+        if st.session_state["agent"].is_trained_on(user_text):
+            with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
+                agent_text = st.session_state["agent"].ask(user_text)
+        else:
+            agent_text = "Sorry, I am yet to be trained on this topic. Please try some other question related to the uploaded file."
 
         st.session_state["messages"].append((user_text, True))
         st.session_state["messages"].append((agent_text, False))
+        st.session_state["user_input"] = ""  # Clear the input field after sending a message
 
 def read_and_save_file():
     st.session_state["agent"].forget()
@@ -90,12 +96,9 @@ def main():
             st.session_state["agent"] = Agent(st.session_state["OPENAI_API_KEY"])
 
     st.subheader("Sample Medical Questions")
-    
-    st.write("- Waht are WBCs?")
-    st.write("- Waht is Achalasia?")
-    st.write("- How is Achalasia diagnosed?")
-    st.write("- Recommended dosage for Acetaminophen.")
     st.write("- What are the common symptoms of COVID-19?")
+    st.write("- How is diabetes diagnosed?")
+    st.write("- Tell me about the treatment options for asthma.")
 
     st.subheader("Upload a Medical Document")
     st.file_uploader(
@@ -111,7 +114,13 @@ def main():
     st.session_state["ingestion_spinner"] = st.empty()
 
     display_messages()
-    st.text_input("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set(), on_change=process_input)
+
+    # Add an Enter button for sending messages
+    input_col, button_col = st.columns([4, 1])
+    with input_col:
+        st.text_input("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set(), on_change=process_input, key_presses=["Enter"])
+    with button_col:
+        st.button("Enter", key="send_button", onclick=process_input)
 
     st.divider()
 
