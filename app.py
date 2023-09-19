@@ -43,13 +43,17 @@ def display_messages():
 def process_input():
     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
         user_text = st.session_state["user_input"].strip()
-        with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
-            agent_text = st.session_state["agent"].ask(user_text)
+        
+        # Check if the user's question is relevant to the uploaded PDF
+        if st.session_state["agent"].is_trained_on(user_text):
+            with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
+                agent_text = st.session_state["agent"].ask(user_text)
+        else:
+            agent_text = "Sorry, I am yet to be trained on this topic. Please try some other question related to the uploaded file."
 
         st.session_state["messages"].append((user_text, True))
         st.session_state["messages"].append((agent_text, False))
-        # Clear the input after processing
-        st.session_state["user_input"] = ""
+
 
 def read_and_save_file():
     st.session_state["agent"].forget()
@@ -110,18 +114,7 @@ def main():
     st.session_state["ingestion_spinner"] = st.empty()
 
     display_messages()
-    
-    # Text input with "Press Enter" functionality
-    user_input = st.text_input("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set())
-    
-    # Listen for Enter key press and trigger processing
-    if user_input and st.session_state["user_input"] != user_input:
-        st.session_state["user_input"] = user_input
-        process_input()
-
-    # Button to trigger Enter
-    if st.button("Press Enter", key="enter_button"):
-        process_input()
+    st.text_input("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set(), on_change=process_input)
 
     st.divider()
 
