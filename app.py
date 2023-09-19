@@ -36,53 +36,38 @@ st.markdown(
 
 def display_messages():
     st.subheader("Chat")
-    for i, (msg, is_user) in enumerate(st.session_state["messages"]):
+    for i, (msg, is_user, source_document) in enumerate(st.session_state["messages"]):
+        if source_document:
+            st.write(f"Source Document: {source_document}")
         message(msg, is_user=is_user, key=str(i))
     st.session_state["thinking_spinner"] = st.empty()
 
 def process_input():
     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
         user_text = st.session_state["user_input"].strip()
-        
-        # Check if user input mentions "PDF" or "document" to consider it related to the PDF
-        if any(keyword in user_text.lower() for keyword in ["pdf", "document"]):
-            with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
-                agent_text = st.session_state["agent"].ask(user_text)
-        else:
-            agent_text = "Sorry, I am yet to be trained on this topic. Please try some other question related to the uploaded file."
+        with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
+            agent_text, source_document = st.session_state["agent"].ask(user_text)
 
         st.session_state["messages"].append((user_text, True))
-        st.session_state["messages"].append((agent_text, False))
-
+        st.session_state["messages"].append((agent_text, False, source_document))
 
 def read_and_save_file():
     st.session_state["agent"].forget()
     st.session_state["messages"] = []
     st.session_state["user_input"] = ""
 
+    source_documents = []
     for file in st.session_state["file_uploader"]:
         with tempfile.NamedTemporaryFile(delete=False) as tf:
             tf.write(file.getbuffer())
             file_path = tf.name
+        source_documents.append(file.name)
 
         with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
             st.session_state["agent"].ingest(file_path)
         os.remove(file_path)
-# def read_and_save_file():
-#     st.session_state["agent"].forget()
-#     st.session_state["messages"] = []
-#     st.session_state["user_input"] = ""
 
-#     for file in st.session_state["file_uploader"]:
-#         file_name = file.name  # Get the PDF file name
-#         with tempfile.NamedTemporaryFile(delete=False) as tf:
-#             tf.write(file.getbuffer())
-#             file_path = tf.name
-
-#         with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file_name}"):
-#             st.session_state["agent"].ingest(file_path, reference=file_name)  # Pass the file name as a reference
-#         os.remove(file_path)
-
+    return source_documents
 
 def is_openai_api_key_set() -> bool:
     return len(st.session_state["OPENAI_API_KEY"]) > 0
@@ -116,7 +101,8 @@ def main():
     st.write("- Tell me about the treatment options for asthma.")
 
     st.subheader("Upload a Medical Document")
-    st.file_uploader(
+    source_documents = st.session_state.get("file_uploader_source_documents", [])
+    uploaded_files = st.file_uploader(
         "Upload medical document (PDF)",
         type=["pdf"],
         key="file_uploader",
@@ -125,6 +111,7 @@ def main():
         accept_multiple_files=True,
         disabled=not is_openai_api_key_set(),
     )
+    st.session_state["file_uploader_source_documents"] = source_documents + uploaded_files
 
     st.session_state["ingestion_spinner"] = st.empty()
 
