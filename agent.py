@@ -25,13 +25,11 @@ class Agent:
         else:
             response = self.chain({"question": question, "chat_history": self.chat_history})
             response = response["answer"].strip()
-
+            
             # Include the reference to the PDF file if available
             if self.current_pdf:
-              
                 response += f" (Ref: {self.current_pdf})"
-
-
+                
             self.chat_history.append((question, response))
         return response
 
@@ -39,9 +37,9 @@ class Agent:
         loader = PyPDFLoader(file_path)
         documents = loader.load()
         splitted_documents = self.text_splitter.split_documents(documents)
-
+        
         self.current_pdf = pdf_name  # Store the PDF file name
-
+        
         if self.db is None:
             self.db = FAISS.from_documents(splitted_documents, self.embeddings)
             self.chain = ConversationalRetrievalChain.from_llm(self.llm, self.db.as_retriever())
