@@ -34,21 +34,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# JavaScript to handle Enter key press
-enter_pressed_js = """
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const inputField = document.querySelector('.stTextInput input');
-    inputField.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            document.querySelector('.stButton button').click();
-        }
-    });
-});
-</script>
-"""
-
 def display_messages():
     st.subheader("Chat")
     for i, (msg, is_user) in enumerate(st.session_state["messages"]):
@@ -58,17 +43,11 @@ def display_messages():
 def process_input():
     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
         user_text = st.session_state["user_input"].strip()
-        
-        # Check if the user's question is relevant to the uploaded PDF
-        if st.session_state["agent"].is_trained_on(user_text):
-            with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
-                agent_text = st.session_state["agent"].ask(user_text)
-        else:
-            agent_text = "Sorry, I am yet to be trained on this topic. Please try some other question related to the uploaded file."
+        with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
+            agent_text = st.session_state["agent"].ask(user_text)
 
         st.session_state["messages"].append((user_text, True))
         st.session_state["messages"].append((agent_text, False))
-        st.session_state["user_input"] = ""  # Clear the input field after sending a message
 
 def read_and_save_file():
     st.session_state["agent"].forget()
@@ -130,12 +109,12 @@ def main():
 
     display_messages()
 
-    # Display JavaScript for handling Enter key press
-    st.markdown(enter_pressed_js, unsafe_allow_html=True)
+    # Replace st.text_input with st.text_area for user input
+    user_input = st.text_area("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set())
 
-    # Use st.button to send the message
-    if st.button("Enter", key="send_button", onclick=process_input):
-        pass
+    # Add a button to submit the user's input
+    if st.button("Enter") and user_input.strip():
+        process_input()
 
     st.divider()
 
