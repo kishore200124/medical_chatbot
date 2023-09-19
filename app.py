@@ -34,6 +34,21 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# JavaScript to handle Enter key press
+enter_pressed_js = """
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const inputField = document.querySelector('.stTextInput input');
+    inputField.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.querySelector('.stButton button').click();
+        }
+    });
+});
+</script>
+"""
+
 def display_messages():
     st.subheader("Chat")
     for i, (msg, is_user) in enumerate(st.session_state["messages"]):
@@ -115,10 +130,12 @@ def main():
 
     display_messages()
 
-    # Use st.form to handle the Enter button
-    with st.form(key="message_form"):
-        user_input = st.text_input("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set())
-        submit_button = st.form_submit_button("Enter", onclick=process_input)
+    # Display JavaScript for handling Enter key press
+    st.markdown(enter_pressed_js, unsafe_allow_html=True)
+
+    # Use st.button to send the message
+    if st.button("Enter", key="send_button", onclick=process_input):
+        pass
 
     st.divider()
 
