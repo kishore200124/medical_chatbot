@@ -28,7 +28,9 @@ class Agent:
 
             # Include the reference to the PDF file if available
             if self.current_pdf:
-                response += f" (Ref: {self.current_pdf}")
+              
+                response += f" (Ref: {self.current_pdf})"
+
 
             self.chat_history.append((question, response))
         return response
