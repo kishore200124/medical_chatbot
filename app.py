@@ -2,55 +2,117 @@ import os
 import tempfile
 import streamlit as st
 from streamlit_chat import message
-from utils import Utils  # Import the Utils class from utils module
+from agent import Agent
 
 st.set_page_config(
-    page_title="Medical ChatBot",
-    page_icon="💉",
-    layout="centered",
-    initial_sidebar_state="collapsed"
+    page_title="Medical ChatBot",
+    page_icon=" ",
+    layout="centered",
+    initial_sidebar_state="collapsed"
 )
 
-# ... (Rest of your code)
+# Custom CSS for design
+st.markdown(
+    """
+    <style>
+    body {
+        background-color: #f7f7f7;
+        font-family: Arial, sans-serif;
+    }
+    .stTextInput {
+        font-size: 16px;
+    }
+    .stButton {
+        background-color: #007BFF;
+        color: white;
+    }
+    .stButton:hover {
+        background-color: #0056b3;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+def display_messages():
+    st.subheader("Chat")
+    for i, (msg, is_user) in enumerate(st.session_state["messages"]):
+        message(msg, is_user=is_user, key=str(i))
+    st.session_state["thinking_spinner"] = st.empty()
 
 def process_input():
-    if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
-        user_text = st.session_state["user_input"].strip()
-        with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
-            # Update the following line to use Utils class instead of Agent
-            agent_text = st.session_state["agent"].ask(user_text)
+    if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
+        user_text = st.session_state["user_input"].strip()
+        with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
+            agent_text = st.session_state["agent"].ask(user_text)
 
-        st.session_state["messages"].append((user_text, True))
-        st.session_state["messages"].append((agent_text, False))
+        st.session_state["messages"].append((user_text, True))
+        st.session_state["messages"].append((agent_text, False))
 
 def read_and_save_file():
-    st.session_state["agent"].forget()
-    st.session_state["messages"] = []
-    st.session_state["user_input"] = ""
+    st.session_state["agent"].forget()
+    st.session_state["messages"] = []
+    st.session_state["user_input"] = ""
 
-    for file in st.session_state["file_uploader"]:
-        with tempfile.NamedTemporaryFile(delete=False) as tf:
-            tf.write(file.getbuffer())
-            file_path = tf.name
+    for file in st.session_state["file_uploader"]:
+        with tempfile.NamedTemporaryFile(delete=False) as tf:
+            tf.write(file.getbuffer())
+            file_path = tf.name
 
-        with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
-            # Update the following line to use Utils class instead of Agent
-            st.session_state["agent"].ingest(file_path)
-        os.remove(file_path)
+        with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
+            st.session_state["agent"].ingest(file_path)
+        os.remove(file_path)
+
+def is_openai_api_key_set() -> bool:
+    return len(st.session_state["OPENAI_API_KEY"]) > 0
 
 def main():
-    if len(st.session_state) == 0:
-        st.session_state["messages"] = []
-        st.session_state["OPENAI_API_KEY"] = os.environ.get("OPENAI_API_KEY", "")
-        if is_openai_api_key_set():
-            # Update the following line to create an instance of Utils class instead of Agent
-            st.session_state["agent"] = Utils(st.session_state["OPENAI_API_KEY"])
-        else:
-            st.session_state["agent"] = None
+    if len(st.session_state) == 0:
+        st.session_state["messages"] = []
+        st.session_state["OPENAI_API_KEY"] = os.environ.get("OPENAI_API_KEY", "")
+        if is_openai_api_key_set():
+            st.session_state["agent"] = Agent(st.session_state["OPENAI_API_KEY"])
+        else:
+            st.session_state["agent"] = None
 
-    st.header("Medical ChatBot")
+    st.header("Medical ChatBot")
 
-    # ... (Rest of your code)
+    if st.text_input("OpenAI API Key", value=st.session_state["OPENAI_API_KEY"], key="input_OPENAI_API_KEY", type="password"):
+        if (
+            len(st.session_state["input_OPENAI_API_KEY"]) > 0
+            and st.session_state["input_OPENAI_API_KEY"] != st.session_state["OPENAI_API_KEY"]
+        ):
+            st.session_state["OPENAI_API_KEY"] = st.session_state["input_OPENAI_API_KEY"]
+            if st.session_state["agent"] is not None:
+                st.warning("Please, upload the files again.")
+            st.session_state["messages"] = []
+            st.session_state["user_input"] = ""
+            st.session_state["agent"] = Agent(st.session_state["OPENAI_API_KEY"])
+
+    st.subheader("Sample Medical Questions")
+    st.write("- Waht are WBCs")  
+    st.write("- Waht is Achalasia")         
+    st.write("- How is Achalasia diagnosed?")
+    st.write("- Tell me about the Causes and symptoms of Viscera .")
+    st.write("- What are the common symptoms of COVID-19?")
+
+    st.subheader("Upload a Medical Document")
+    st.file_uploader(
+        "Upload medical document (PDF)",
+        type=["pdf"],
+        key="file_uploader",
+        on_change=read_and_save_file,
+        label_visibility="collapsed",
+        accept_multiple_files=True,
+        disabled=not is_openai_api_key_set(),
+    )
+
+    st.session_state["ingestion_spinner"] = st.empty()
+
+    display_messages()
+    st.text_input("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set(), on_change=process_input)
+
+    st.divider()
 
 if __name__ == "__main__":
-    main()
+    main()
