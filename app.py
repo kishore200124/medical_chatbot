@@ -112,11 +112,15 @@ def main():
     display_messages()
     
     # Text input with "Press Enter" functionality
-    user_input = st.text_input("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set(), on_change=process_input)
+    user_input = st.text_input("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set())
     
     # Listen for Enter key press and trigger processing
     if user_input and st.session_state["user_input"] != user_input:
         st.session_state["user_input"] = user_input
+        process_input()
+
+    # Button to trigger Enter
+    if st.button("Press Enter", key="enter_button"):
         process_input()
 
     st.divider()
