@@ -23,14 +23,11 @@ st.markdown(
         font-size: 16px;
     }
     .stButton {
-        background-color: transparent; /* Remove background color */
-        color: #007BFF; /* Set text color */
-        border: none; /* Remove border */
-        padding: 0.25rem 0.5rem;
-        font-size: 14px;
+        background-color: #007BFF;
+        color: white;
     }
     .stButton:hover {
-        background-color: transparent; /* Remove background color on hover */
+        background-color: #0056b3;
     }
     </style>
     """,
@@ -51,6 +48,8 @@ def process_input():
 
         st.session_state["messages"].append((user_text, True))
         st.session_state["messages"].append((agent_text, False))
+        # Clear the input after processing
+        st.session_state["user_input"] = ""
 
 def read_and_save_file():
     st.session_state["agent"].forget()
@@ -111,12 +110,13 @@ def main():
     st.session_state["ingestion_spinner"] = st.empty()
 
     display_messages()
-
-    # Replace st.text_input with st.text_area for user input
-    user_input = st.text_area("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set())
-
-    # Add a small "Enter" button
-    if st.button("Enter", key="enter_button") and user_input.strip():
+    
+    # Text input with "Press Enter" functionality
+    user_input = st.text_input("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set(), on_change=process_input)
+    
+    # Listen for Enter key press and trigger processing
+    if user_input and st.session_state["user_input"] != user_input:
+        st.session_state["user_input"] = user_input
         process_input()
 
     st.divider()
