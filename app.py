@@ -90,8 +90,8 @@ def main():
             st.session_state["agent"] = Agent(st.session_state["OPENAI_API_KEY"])
 
     st.subheader("Sample Medical Questions")
-    st.write("-waht are WBC")  
-    st.write("-waht is Achalasia")         
+    st.write("- Waht are WBCs")  
+    st.write("- Waht is Achalasia")         
     st.write("- How is Achalasia diagnosed?")
     st.write("- Tell me about the Causes and symptoms of Viscera .")
     st.write("- What are the common symptoms of COVID-19?")
