@@ -3,7 +3,6 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
-
 from langchain.chains import ConversationalRetrievalChain
 from langchain.llms import OpenAI
 
@@ -11,7 +10,6 @@ class Agent:
     def __init__(self, openai_api_key: str = None) -> None:
         self.embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-
         self.llm = OpenAI(temperature=0, openai_api_key=openai_api_key)
 
         self.chat_history = None
@@ -21,7 +19,7 @@ class Agent:
 
     def ask(self, question: str) -> str:
         if self.chain is None:
-            response = "Please, add a document."
+            response = "Sorry, I am yet to be trained on this topic. Please add a document first."
         else:
             response = self.chain({"question": question, "chat_history": self.chat_history})
             response = response["answer"].strip()
