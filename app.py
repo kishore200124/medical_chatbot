@@ -4,15 +4,41 @@ import streamlit as st
 from streamlit_chat import message
 from agent import Agent
 
-st.set_page_config(page_title="ChatPDF")
+st.set_page_config(
+    page_title="Medical ChatBot",
+    page_icon="💉",
+    layout="centered",
+    initial_sidebar_state="collapsed"
+)
 
+# Custom CSS for design
+st.markdown(
+    """
+    <style>
+    body {
+        background-color: #f7f7f7;
+        font-family: Arial, sans-serif;
+    }
+    .stTextInput {
+        font-size: 16px;
+    }
+    .stButton {
+        background-color: #007BFF;
+        color: white;
+    }
+    .stButton:hover {
+        background-color: #0056b3;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 def display_messages():
     st.subheader("Chat")
     for i, (msg, is_user) in enumerate(st.session_state["messages"]):
         message(msg, is_user=is_user, key=str(i))
     st.session_state["thinking_spinner"] = st.empty()
-
 
 def process_input():
     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
@@ -23,9 +49,8 @@ def process_input():
         st.session_state["messages"].append((user_text, True))
         st.session_state["messages"].append((agent_text, False))
 
-
 def read_and_save_file():
-    st.session_state["agent"].forget()  # to reset the knowledge base
+    st.session_state["agent"].forget()
     st.session_state["messages"] = []
     st.session_state["user_input"] = ""
 
@@ -38,10 +63,8 @@ def read_and_save_file():
             st.session_state["agent"].ingest(file_path)
         os.remove(file_path)
 
-
 def is_openai_api_key_set() -> bool:
     return len(st.session_state["OPENAI_API_KEY"]) > 0
-
 
 def main():
     if len(st.session_state) == 0:
@@ -52,7 +75,7 @@ def main():
         else:
             st.session_state["agent"] = None
 
-    st.header("ChatPDF")
+    st.header("Medical ChatBot")
 
     if st.text_input("OpenAI API Key", value=st.session_state["OPENAI_API_KEY"], key="input_OPENAI_API_KEY", type="password"):
         if (
@@ -66,9 +89,14 @@ def main():
             st.session_state["user_input"] = ""
             st.session_state["agent"] = Agent(st.session_state["OPENAI_API_KEY"])
 
-    st.subheader("Upload a document")
+    st.subheader("Sample Medical Questions")
+    st.write("- What are the common symptoms of COVID-19?")
+    st.write("- How is diabetes diagnosed?")
+    st.write("- Tell me about the treatment options for asthma.")
+
+    st.subheader("Upload a Medical Document")
     st.file_uploader(
-        "Upload document",
+        "Upload medical document (PDF)",
         type=["pdf"],
         key="file_uploader",
         on_change=read_and_save_file,
@@ -80,11 +108,9 @@ def main():
     st.session_state["ingestion_spinner"] = st.empty()
 
     display_messages()
-    st.text_input("Message", key="user_input", disabled=not is_openai_api_key_set(), on_change=process_input)
+    st.text_input("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set(), on_change=process_input)
 
     st.divider()
-    #st.markdown("Source code: [Github](https://github.com/viniciusarruda/chatpdf)")
-
 
 if __name__ == "__main__":
     main()
