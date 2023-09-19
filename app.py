@@ -36,15 +36,16 @@ st.markdown(
 
 def display_messages():
     st.subheader("Chat")
-    current_source_document = None
-
+    
     for i, (msg, is_user, source_document) in enumerate(st.session_state["messages"]):
-        if source_document:
-            current_source_document = source_document
         if is_user:
             st.write(f"User: {msg}")
         else:
-            st.write(f"Chatbot (Source Document: {current_source_document}): {msg}")
+            if source_document:
+                st.write(f"Chatbot (Source Document: {source_document}): {msg}")
+            else:
+                st.write(f"Chatbot: {msg}")
+    
     st.session_state["thinking_spinner"] = st.empty()
 
 def process_input():
