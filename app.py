@@ -40,15 +40,6 @@ def display_messages():
         message(msg, is_user=is_user, key=str(i))
     st.session_state["thinking_spinner"] = st.empty()
 
-# def process_input():
-#     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
-#         user_text = st.session_state["user_input"].strip()
-#         with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
-#             agent_text = st.session_state["agent"].ask(user_text)
-
-#         st.session_state["messages"].append((user_text, True))
-#         st.session_state["messages"].append((agent_text, False))
-
 def process_input():
     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
         user_text = st.session_state["user_input"].strip()
@@ -59,14 +50,13 @@ def process_input():
                 agent_text = st.session_state["agent"].ask(user_text)
         else:
             # Check if the chatbot has ingested any document
-            if st.session_state.get("agent") is not None:
+            if st.session_state["agent"].db is not None:
                 agent_text = "Sorry, I am yet to be trained on this topic. Please try some other question related to the uploaded file."
             else:
                 agent_text = "Please upload a medical document (PDF) to continue."
 
         st.session_state["messages"].append((user_text, True))
         st.session_state["messages"].append((agent_text, False))
-
 
 def read_and_save_file():
     st.session_state["agent"].forget()
@@ -78,10 +68,8 @@ def read_and_save_file():
             tf.write(file.getbuffer())
             file_path = tf.name
 
-        # Pass the PDF file name to the ingest method
-        pdf_name = file.name
-        with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {pdf_name}"):
-            st.session_state["agent"].ingest(file_path, pdf_name)
+        with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
+            st.session_state["agent"].ingest(file_path, pdf_name=file.name)
         os.remove(file_path)
 
 def is_openai_api_key_set() -> bool:
