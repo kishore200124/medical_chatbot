@@ -19,19 +19,37 @@ class Agent:
         self.db = None
         self.current_pdf = None  # To keep track of the currently ingested PDF
 
-    def ask(self, question: str) -> str:
-        if self.chain is None:
-            response = "Please, add a document."
-        else:
-            response = self.chain({"question": question, "chat_history": self.chat_history})
-            response = response["answer"].strip()
+    # def ask(self, question: str) -> str:
+    #     if self.chain is None:
+    #         response = "Please, add a document."
+    #     else:
+    #         response = self.chain({"question": question, "chat_history": self.chat_history})
+    #         response = response["answer"].strip()
             
-            # Include the reference to the PDF file if available
-            if self.current_pdf:
-                response += f" (Ref: {self.current_pdf})"
+    #         # Include the reference to the PDF file if available
+    #         if self.current_pdf:
+    #             response += f" (Ref: {self.current_pdf})"
                 
-            self.chat_history.append((question, response))
-        return response
+    #         self.chat_history.append((question, response))
+    #     return response
+    def ask(self, question: str) -> str:
+    if self.chain is None:
+        response = "Please, add a document."
+    else:
+        response = self.chain({"question": question, "chat_history": self.chat_history})
+        response = response["answer"].strip()
+
+        # Check if the response contains "I don't know" and replace it with the desired message
+        if "I don't know" in response:
+            response = "Sorry, I am yet to be trained on this topic. Please try some other question related to the uploaded file."
+
+        # Include the reference to the PDF file if available
+        if self.current_pdf:
+            response += f" (Ref: {self.current_pdf})"
+            
+        self.chat_history.append((question, response))
+    return response
+
 
     def ingest(self, file_path: os.PathLike, pdf_name: str) -> None:
         loader = PyPDFLoader(file_path)
