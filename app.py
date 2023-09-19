@@ -115,12 +115,10 @@ def main():
 
     display_messages()
 
-    # Add an Enter button for sending messages
-    input_col, button_col = st.columns([4, 1])
-    with input_col:
-        st.text_input("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set(), on_change=process_input, key_presses=["Enter"])
-    with button_col:
-        st.button("Enter", key="send_button", onclick=process_input)
+    # Use st.form to handle the Enter button
+    with st.form(key="message_form"):
+        user_input = st.text_input("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set())
+        submit_button = st.form_submit_button("Enter", onclick=process_input)
 
     st.divider()
 
