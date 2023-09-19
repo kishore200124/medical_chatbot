@@ -44,8 +44,8 @@ def process_input():
     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
         user_text = st.session_state["user_input"].strip()
         
-        # Check if the user's question is relevant to the uploaded PDF
-        if st.session_state["agent"].is_trained_on(user_text):
+        # Check if user input mentions "PDF" or "document" to consider it related to the PDF
+        if any(keyword in user_text.lower() for keyword in ["pdf", "document"]):
             with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
                 agent_text = st.session_state["agent"].ask(user_text)
         else:
