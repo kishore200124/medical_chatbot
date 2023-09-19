@@ -23,13 +23,14 @@ st.markdown(
         font-size: 16px;
     }
     .stButton {
-        background-color: #007BFF;
-        color: white;
-        padding: 0.25rem 0.5rem; /* Adjust padding to make it smaller */
-        font-size: 14px; /* Adjust font size to make it smaller */
+        background-color: transparent; /* Remove background color */
+        color: #007BFF; /* Set text color */
+        border: none; /* Remove border */
+        padding: 0.25rem 0.5rem;
+        font-size: 14px;
     }
     .stButton:hover {
-        background-color: #0056b3;
+        background-color: transparent; /* Remove background color on hover */
     }
     </style>
     """,
