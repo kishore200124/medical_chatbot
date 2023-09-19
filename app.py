@@ -42,11 +42,11 @@ def display_messages():
 
 def process_input():
     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
-        user_text = st.session_state["user_input"].strip()
+        user_text = st.session_state["user_input"].strip().lower()  # Convert input to lowercase for case-insensitive matching
 
         # Check if user's input contains keywords related to PDF or document
         pdf_keywords = ["pdf", "document"]
-        is_related_to_pdf = any(keyword in user_text.lower() for keyword in pdf_keywords)
+        is_related_to_pdf = any(keyword in user_text for keyword in pdf_keywords)
 
         with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
             if is_related_to_pdf:
