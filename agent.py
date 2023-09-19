@@ -10,7 +10,7 @@ from langchain.llms import OpenAI
 
 class Agent:
     def __init__(self, openai_api_key: str = None) -> None:
-        # if openai_api_key is None, then it will look the enviroment variable OPENAI_API_KEY
+        # if openai_api_key is None, then it will look for the environment variable OPENAI_API_KEY
         self.embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 
@@ -19,6 +19,7 @@ class Agent:
         self.chat_history = None
         self.chain = None
         self.db = None
+        self.reference = None  # Initialize the reference variable
 
     def ask(self, question: str) -> str:
         if self.chain is None:
@@ -29,7 +30,7 @@ class Agent:
             self.chat_history.append((question, response))
         return response
 
-    def ingest(self, file_path: os.PathLike) -> None:
+    def ingest(self, file_path: os.PathLike, reference=None) -> None:
         loader = PyPDFLoader(file_path)
         documents = loader.load()
         splitted_documents = self.text_splitter.split_documents(documents)
@@ -40,8 +41,11 @@ class Agent:
             self.chat_history = []
         else:
             self.db.add_documents(splitted_documents)
+        
+        self.reference = reference  # Store the reference (PDF file name)
 
     def forget(self) -> None:
         self.db = None
         self.chain = None
         self.chat_history = None
+        self.reference = None  # Reset the reference when forgetting
