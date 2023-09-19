@@ -39,7 +39,7 @@ def display_messages():
     for i, (msg, is_user, document_source) in enumerate(st.session_state["messages"]):
         # Display the document source along with the message
         if document_source:
-            msg = f"{msg} (Source: {document_source})"
+            msg = f"{msg} (Ref: {document_source})"
         message(msg, is_user=is_user, key=str(i))
     st.session_state["thinking_spinner"] = st.empty()
 
@@ -47,8 +47,9 @@ def process_input():
     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
         user_text = st.session_state["user_input"].strip()
         document_source = "User Input"  # Source for user input
+        st.session_state["agent"].set_document_source(document_source)  # Set document source
         with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
-            agent_text = st.session_state["agent"].ask(user_text, document_source)
+            agent_text = st.session_state["agent"].ask(user_text)
 
         st.session_state["messages"].append((user_text, True, document_source))
         st.session_state["messages"].append((agent_text, False, document_source))
@@ -66,8 +67,8 @@ def read_and_save_file():
         with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
             st.session_state["agent"].ingest(file_path)
         
-        # Add document source to chat history
-        st.session_state["agent"].ask(f"Ingested document: {file.name}", document_source=file.name)
+        # Set the document source for responses from this document
+        st.session_state["agent"].set_document_source(file.name)
         
         os.remove(file_path)
 
