@@ -37,7 +37,7 @@ st.markdown(
 def display_messages():
     st.subheader("Chat")
     for i, (msg, is_user, document_source) in enumerate(st.session_state["messages"]):
-        # Display the document source along with the message
+        # Display the document source in the message
         if document_source:
             msg = f"{msg} (Ref: {document_source})"
         message(msg, is_user=is_user, key=str(i))
@@ -51,6 +51,7 @@ def process_input():
         with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
             agent_text = st.session_state["agent"].ask(user_text)
 
+        # Append the response without "Response from User Input" prefix
         st.session_state["messages"].append((user_text, True, document_source))
         st.session_state["messages"].append((agent_text, False, document_source))
 
