@@ -9,7 +9,7 @@ from langchain.llms import OpenAI
 
 
 class Agent:
-    def __init__(self, openai_api_key: str | None = None) -> None:
+    def __init__(self, openai_api_key: str = None) -> None:
         # if openai_api_key is None, then it will look the enviroment variable OPENAI_API_KEY
         self.embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
