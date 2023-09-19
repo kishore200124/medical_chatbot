@@ -53,7 +53,7 @@ def process_input():
         user_text = st.session_state["user_input"].strip()
         
         # Check if user input mentions "PDF" or "document" to consider it related to the PDF
-        if any(keyword in user_text.lower() for keyword in ["pdf", "document"]):
+        if any(keyword.lower() in user_text.lower() for keyword in ["pdf", "document"]):
             with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
                 agent_text = st.session_state["agent"].ask(user_text)
         else:
