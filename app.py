@@ -43,20 +43,24 @@ def display_messages():
 def process_input():
     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
         user_text = st.session_state["user_input"].strip()
-        
-        # Check if user input mentions "PDF" or "document" to consider it related to the PDF
-        if any(keyword in user_text.lower() for keyword in ["pdf", "document"]):
-            with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
+
+        # Check if user's input contains keywords related to PDF or document
+        pdf_keywords = ["pdf", "document"]
+        is_related_to_pdf = any(keyword in user_text.lower() for keyword in pdf_keywords)
+
+        with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
+            if is_related_to_pdf:
                 agent_text = st.session_state["agent"].ask(user_text)
-        else:
-            # Check if the chatbot has ingested any document
-            if st.session_state["agent"].db is not None:
-                agent_text = "Sorry, I am yet to be trained on this topic. Please try some other question related to the uploaded file."
             else:
-                agent_text = "Please upload a medical document (PDF) to continue."
+                # If the input is not related to PDF, display a specific message
+                agent_text = (
+                    "Sorry, I am yet to be trained on this topic. "
+                    "Please try some other question related to the uploaded file."
+                )
 
         st.session_state["messages"].append((user_text, True))
         st.session_state["messages"].append((agent_text, False))
+
 
 def read_and_save_file():
     st.session_state["agent"].forget()
