@@ -48,19 +48,6 @@ def process_input():
 
         st.session_state["messages"].append((user_text, True))
         st.session_state["messages"].append((agent_text, False))
-# def process_input():
-#     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
-#         user_text = st.session_state["user_input"].strip()
-        
-#         # Check if user input mentions "PDF" or "document" to consider it related to the PDF
-#         if any(keyword.lower() in user_text.lower() for keyword in ["pdf", "document"]):
-#             with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
-#                 agent_text = st.session_state["agent"].ask(user_text)
-#         else:
-#             agent_text = "Sorry, I am yet to be trained on this topic. Please try some other question related to the uploaded file."
-
-#         st.session_state["messages"].append((user_text, True))
-#         st.session_state["messages"].append((agent_text, False))
 
 def read_and_save_file():
     st.session_state["agent"].forget()
@@ -72,8 +59,10 @@ def read_and_save_file():
             tf.write(file.getbuffer())
             file_path = tf.name
 
-        with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
-            st.session_state["agent"].ingest(file_path)
+        # Pass the PDF file name to the ingest method
+        pdf_name = file.name
+        with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {pdf_name}"):
+            st.session_state["agent"].ingest(file_path, pdf_name)
         os.remove(file_path)
 
 def is_openai_api_key_set() -> bool:
