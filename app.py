@@ -48,8 +48,9 @@ def process_input():
         with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
             agent_text, source_document = st.session_state["agent"].ask(user_text)
 
-        st.session_state["messages"].append((user_text, True))
+        st.session_state["messages"].append((user_text, True, None))
         st.session_state["messages"].append((agent_text, False, source_document))
+
 
 def read_and_save_file():
     st.session_state["agent"].forget()
