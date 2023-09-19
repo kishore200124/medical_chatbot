@@ -34,24 +34,24 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-def display_messages():
+def display_messages(pdf_chat_history):
     st.subheader("Chat")
-    for i, (msg, is_user) in enumerate(st.session_state["messages"]):
+    for i, (msg, is_user) in enumerate(pdf_chat_history):
         message(msg, is_user=is_user, key=str(i))
     st.session_state["thinking_spinner"] = st.empty()
 
-def process_input():
+def process_input(pdf_chat_history):
     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
         user_text = st.session_state["user_input"].strip()
+        selected_pdf = st.selectbox("Select PDF", list(st.session_state["pdf_chat_histories"].keys()))
         with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
             agent_text = st.session_state["agent"].ask(user_text)
 
-        st.session_state["messages"].append((user_text, True))
-        st.session_state["messages"].append((agent_text, False))
+        # Append messages to the selected PDF's chat history
+        pdf_chat_history[selected_pdf].append((user_text, True))
+        pdf_chat_history[selected_pdf].append((agent_text, False))
 
-def read_and_save_file():
-    st.session_state["agent"].forget()
-    st.session_state["messages"] = []
+def read_and_save_file(pdf_chat_history):
     st.session_state["user_input"] = ""
 
     for file in st.session_state["file_uploader"]:
@@ -61,6 +61,8 @@ def read_and_save_file():
 
         # Pass the PDF file name to the ingest method
         pdf_name = file.name
+        if pdf_name not in st.session_state["pdf_chat_histories"]:
+            st.session_state["pdf_chat_histories"][pdf_name] = []  # Initialize chat history for the PDF
         with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {pdf_name}"):
             st.session_state["agent"].ingest(file_path, pdf_name)
         os.remove(file_path)
@@ -71,6 +73,7 @@ def is_openai_api_key_set() -> bool:
 def main():
     if len(st.session_state) == 0:
         st.session_state["messages"] = []
+        st.session_state["pdf_chat_histories"] = {}  # Dictionary to store chat histories for each PDF
         st.session_state["OPENAI_API_KEY"] = os.environ.get("OPENAI_API_KEY", "")
         if is_openai_api_key_set():
             st.session_state["agent"] = Agent(st.session_state["OPENAI_API_KEY"])
@@ -101,7 +104,7 @@ def main():
         "Upload medical document (PDF)",
         type=["pdf"],
         key="file_uploader",
-        on_change=read_and_save_file,
+        on_change=lambda: read_and_save_file(st.session_state["pdf_chat_histories"]),
         label_visibility="collapsed",
         accept_multiple_files=True,
         disabled=not is_openai_api_key_set(),
@@ -109,8 +112,12 @@ def main():
 
     st.session_state["ingestion_spinner"] = st.empty()
 
-    display_messages()
-    st.text_input("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set(), on_change=process_input)
+    selected_pdf = st.selectbox("Select PDF", list(st.session_state["pdf_chat_histories"].keys()))
+
+    pdf_chat_history = st.session_state["pdf_chat_histories"].get(selected_pdf, [])
+    display_messages(pdf_chat_history)
+    
+    st.text_input("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set(), on_change=lambda: process_input(pdf_chat_history))
 
     st.divider()
 
