@@ -25,6 +25,8 @@ st.markdown(
     .stButton {
         background-color: #007BFF;
         color: white;
+        padding: 0.25rem 0.5rem; /* Adjust padding to make it smaller */
+        font-size: 14px; /* Adjust font size to make it smaller */
     }
     .stButton:hover {
         background-color: #0056b3;
@@ -112,8 +114,8 @@ def main():
     # Replace st.text_input with st.text_area for user input
     user_input = st.text_area("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set())
 
-    # Add a button to submit the user's input
-    if st.button("Enter") and user_input.strip():
+    # Add a small "Enter" button
+    if st.button("Enter", key="enter_button") and user_input.strip():
         process_input()
 
     st.divider()
