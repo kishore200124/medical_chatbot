@@ -41,13 +41,15 @@ def display_messages():
     st.session_state["thinking_spinner"] = st.empty()
 
 def process_input():
-    if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
-        user_text = st.session_state["user_input"].strip()
+    user_input = st.session_state["user_input"]
+    if user_input.strip():
         with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
-            agent_text = st.session_state["agent"].ask(user_text)
+            agent_text = st.session_state["agent"].ask(user_input)
 
-        st.session_state["messages"].append((user_text, True))
+        st.session_state["messages"].append((user_input, True))
         st.session_state["messages"].append((agent_text, False))
+        st.session_state["user_input"] = ""  # Clear the user input field after processing
+
 
 def read_and_save_file():
     st.session_state["agent"].forget()
@@ -108,9 +110,18 @@ def main():
     st.session_state["ingestion_spinner"] = st.empty()
 
     display_messages()
-    st.text_input("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set(), on_change=process_input)
+    st.text_area(
+        "Ask a medical question",
+        key="user_input",
+        disabled=not is_openai_api_key_set(),
+        on_change=lambda new_input: st.session_state.update(user_input=new_input),
+    )
+
+    if st.button("Enter", key="enter_button", disabled=not is_openai_api_key_set()):
+        process_input()  # Call the process_input function when the "Enter" button is clicked
 
     st.divider()
+
 
 if __name__ == "__main__":
     main()
