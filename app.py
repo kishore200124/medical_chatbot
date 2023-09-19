@@ -54,6 +54,7 @@ def process_input():
         st.session_state["messages"].append((user_text, True))
         st.session_state["messages"].append((agent_text, False))
 
+
 def read_and_save_file():
     st.session_state["agent"].forget()
     st.session_state["messages"] = []
