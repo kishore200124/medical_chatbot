@@ -71,7 +71,7 @@ def main():
         st.session_state["messages"] = []
         st.session_state["OPENAI_API_KEY"] = os.environ.get("OPENAI_API_KEY", "")
         if is_openai_api_key_set():
-            st.session_state["agent"] = Agent(st.session_state["OPENAI_API_KEY"])
+            st.session_state["agent"] = Utils(st.session_state["OPENAI_API_KEY"])
         else:
             st.session_state["agent"] = None
 
@@ -87,7 +87,7 @@ def main():
                 st.warning("Please, upload the files again.")
             st.session_state["messages"] = []
             st.session_state["user_input"] = ""
-            st.session_state["agent"] = Agent(st.session_state["OPENAI_API_KEY"])
+            st.session_state["agent"] = Utils(st.session_state["OPENAI_API_KEY"])
 
     st.subheader("Sample Medical Questions")
     st.write("- Waht are WBCs")  
