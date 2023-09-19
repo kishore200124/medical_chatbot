@@ -36,26 +36,18 @@ st.markdown(
 
 def display_messages():
     st.subheader("Chat")
-    
-    for i, (msg, is_user, source_document) in enumerate(st.session_state["messages"]):
-        if is_user:
-            st.write(f"User: {msg}")
-        else:
-            if source_document:
-                st.write(f"Chatbot (Source Document: {source_document}): {msg}")
-            else:
-                st.write(f"Chatbot: {msg}")
-    
+    for i, (msg, is_user) in enumerate(st.session_state["messages"]):
+        message(msg, is_user=is_user, key=str(i))
     st.session_state["thinking_spinner"] = st.empty()
 
 def process_input():
     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
         user_text = st.session_state["user_input"].strip()
         with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
-            agent_text, source_document = st.session_state["agent"].ask(user_text)
+            agent_text = st.session_state["agent"].ask(user_text)
 
-        st.session_state["messages"].append((user_text, True, None))
-        st.session_state["messages"].append((agent_text, False, source_document))
+        st.session_state["messages"].append((user_text, True))
+        st.session_state["messages"].append((agent_text, False))
 
 def read_and_save_file():
     st.session_state["agent"].forget()
@@ -67,12 +59,9 @@ def read_and_save_file():
             tf.write(file.getbuffer())
             file_path = tf.name
 
-        source_document = file.name  # Store the source document name
         with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
             st.session_state["agent"].ingest(file_path)
         os.remove(file_path)
-
-        st.session_state["messages"].append(("", False, source_document))  # Store the source document in the messages
 
 def is_openai_api_key_set() -> bool:
     return len(st.session_state["OPENAI_API_KEY"]) > 0
@@ -106,8 +95,7 @@ def main():
     st.write("- Tell me about the treatment options for asthma.")
 
     st.subheader("Upload a Medical Document")
-    source_documents = st.session_state.get("file_uploader_source_documents", [])
-    uploaded_files = st.file_uploader(
+    st.file_uploader(
         "Upload medical document (PDF)",
         type=["pdf"],
         key="file_uploader",
@@ -116,7 +104,6 @@ def main():
         accept_multiple_files=True,
         disabled=not is_openai_api_key_set(),
     )
-    st.session_state["file_uploader_source_documents"] = source_documents + uploaded_files
 
     st.session_state["ingestion_spinner"] = st.empty()
 
