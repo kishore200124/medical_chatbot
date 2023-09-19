@@ -40,16 +40,16 @@ def display_messages(pdf_chat_history):
         message(msg, is_user=is_user, key=str(i))
     st.session_state["thinking_spinner"] = st.empty()
 
-def process_input(pdf_chat_history):
+def process_input(pdf_chat_histories):
     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
         user_text = st.session_state["user_input"].strip()
-        selected_pdf = st.selectbox("Select PDF", list(st.session_state["pdf_chat_histories"].keys()))
+        selected_pdf = st.selectbox("Select PDF", list(pdf_chat_histories.keys()))
         with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
             agent_text = st.session_state["agent"].ask(user_text)
 
         # Append messages to the selected PDF's chat history
-        pdf_chat_history[selected_pdf].append((user_text, True))
-        pdf_chat_history[selected_pdf].append((agent_text, False))
+        pdf_chat_histories[selected_pdf].append((user_text, True))
+        pdf_chat_histories[selected_pdf].append((agent_text, False))
 
 def read_and_save_file(pdf_chat_history):
     st.session_state["user_input"] = ""
