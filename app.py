@@ -91,9 +91,10 @@ def main():
 
     st.subheader("Sample Medical Questions")
     
+    st.write("- Waht are WBCs?")
     st.write("- Waht is Achalasia?")
     st.write("- How is Achalasia diagnosed?")
-    st.write("- Tell me about the Causes and symptoms of Viscera.")
+    st.write("- Recommended dosage for Acetaminophen.")
     st.write("- What are the common symptoms of COVID-19?")
 
     st.subheader("Upload a Medical Document")
