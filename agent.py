@@ -14,17 +14,22 @@ class Agent:
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         self.llm = OpenAI(temperature=0, openai_api_key=openai_api_key)
         self.chat_history = []  # Initialize chat history to an empty list
+        self.current_document_source = None  # Initialize the current document source
 
         self.chain = None
         self.db = None
 
-    def ask(self, question: str, document_source: str) -> str:
+    def set_document_source(self, document_source: str) -> None:
+        self.current_document_source = document_source
+
+    def ask(self, question: str) -> str:
         if self.chain is None:
             response = "Please, add a document."
         else:
-            response = self.chain({"question": question, "chat_history": self.chat_history})
-            response = response["answer"].strip()
-            self.chat_history.append((question, response, document_source))  # Add document source
+            # Include the document source in the response
+            response = f"Response from {self.current_document_source}:\n"
+            response += self.chain({"question": question, "chat_history": self.chat_history})["answer"].strip()
+            self.chat_history.append((question, response))  # Store the response with source
         return response
 
     def ingest(self, file_path: os.PathLike) -> None:
