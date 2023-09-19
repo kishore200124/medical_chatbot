@@ -112,12 +112,13 @@ def main():
 
     display_messages()
 
-    # Replace st.text_input with st.text_area for user input
-    user_input = st.text_area("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set())
+    with st.form(key='my_form'):
+        # Replace st.text_input with st.text_area for user input
+        user_input = st.text_area("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set())
 
-    # Add a small "Enter" button
-    if st.button("Enter", key="enter_button") and user_input.strip():
-        process_input()
+        # Add a small "Enter" button
+        if st.form_submit_button("Enter") and user_input.strip():
+            process_input()
 
     st.divider()
 
