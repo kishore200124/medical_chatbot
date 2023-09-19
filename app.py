@@ -36,10 +36,15 @@ st.markdown(
 
 def display_messages():
     st.subheader("Chat")
+    current_source_document = None
+
     for i, (msg, is_user, source_document) in enumerate(st.session_state["messages"]):
         if source_document:
-            st.write(f"Source Document: {source_document}")
-        message(msg, is_user=is_user, key=str(i))
+            current_source_document = source_document
+        if is_user:
+            st.write(f"User: {msg}")
+        else:
+            st.write(f"Chatbot (Source Document: {current_source_document}): {msg}")
     st.session_state["thinking_spinner"] = st.empty()
 
 def process_input():
@@ -51,24 +56,22 @@ def process_input():
         st.session_state["messages"].append((user_text, True, None))
         st.session_state["messages"].append((agent_text, False, source_document))
 
-
 def read_and_save_file():
     st.session_state["agent"].forget()
     st.session_state["messages"] = []
     st.session_state["user_input"] = ""
 
-    source_documents = []
     for file in st.session_state["file_uploader"]:
         with tempfile.NamedTemporaryFile(delete=False) as tf:
             tf.write(file.getbuffer())
             file_path = tf.name
-        source_documents.append(file.name)
 
+        source_document = file.name  # Store the source document name
         with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
             st.session_state["agent"].ingest(file_path)
         os.remove(file_path)
 
-    return source_documents
+        st.session_state["messages"].append(("", False, source_document))  # Store the source document in the messages
 
 def is_openai_api_key_set() -> bool:
     return len(st.session_state["OPENAI_API_KEY"]) > 0
