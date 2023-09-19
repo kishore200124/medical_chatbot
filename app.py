@@ -55,33 +55,33 @@ def process_input():
         st.session_state["messages"].append((agent_text, False))
 
 
-# def read_and_save_file():
-#     st.session_state["agent"].forget()
-#     st.session_state["messages"] = []
-#     st.session_state["user_input"] = ""
-
-#     for file in st.session_state["file_uploader"]:
-#         with tempfile.NamedTemporaryFile(delete=False) as tf:
-#             tf.write(file.getbuffer())
-#             file_path = tf.name
-
-#         with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
-#             st.session_state["agent"].ingest(file_path)
-#         os.remove(file_path)
 def read_and_save_file():
     st.session_state["agent"].forget()
     st.session_state["messages"] = []
     st.session_state["user_input"] = ""
 
     for file in st.session_state["file_uploader"]:
-        file_name = file.name  # Get the PDF file name
         with tempfile.NamedTemporaryFile(delete=False) as tf:
             tf.write(file.getbuffer())
             file_path = tf.name
 
-        with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file_name}"):
-            st.session_state["agent"].ingest(file_path, reference=file_name)  # Pass the file name as a reference
+        with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
+            st.session_state["agent"].ingest(file_path)
         os.remove(file_path)
+# def read_and_save_file():
+#     st.session_state["agent"].forget()
+#     st.session_state["messages"] = []
+#     st.session_state["user_input"] = ""
+
+#     for file in st.session_state["file_uploader"]:
+#         file_name = file.name  # Get the PDF file name
+#         with tempfile.NamedTemporaryFile(delete=False) as tf:
+#             tf.write(file.getbuffer())
+#             file_path = tf.name
+
+#         with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file_name}"):
+#             st.session_state["agent"].ingest(file_path, reference=file_name)  # Pass the file name as a reference
+#         os.remove(file_path)
 
 
 def is_openai_api_key_set() -> bool:
