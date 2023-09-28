@@ -53,7 +53,18 @@ def process_input():
 
         st.session_state["messages"].append((user_text, True))
         st.session_state["messages"].append((agent_text, False))
-        
+
+def process_youtube_link():
+    youtube_link = st.session_state["youtube_link"]
+    if youtube_link:
+        with st.session_state["thinking_spinner"], st.spinner(f"Retrieving YouTube Transcription"):
+            transcription_text = retrieve_youtube_transcription(youtube_link)
+        if transcription_text:
+            st.success("YouTube transcription retrieved successfully.")
+            st.session_state["agent"].ingest_transcription(transcription_text)
+        else:
+            st.error("Failed to retrieve YouTube transcription. Please check the link.")
+
 def read_and_save_file():
     st.session_state["agent"].forget()
     st.session_state["messages"] = []
