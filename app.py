@@ -4,7 +4,6 @@ import streamlit as st
 from streamlit_chat import message
 from agent import Agent
 
-# Set Streamlit page configuration
 st.set_page_config(
     page_title="Medical ChatBot",
     page_icon="💉",
@@ -49,17 +48,6 @@ def process_input():
 
         st.session_state["messages"].append((user_text, True))
         st.session_state["messages"].append((agent_text, False))
-
-def process_youtube_link():
-    if st.session_state["youtube_link"] and len(st.session_state["youtube_link"].strip()) > 0:
-        youtube_link = st.session_state["youtube_link"].strip()
-
-        with st.session_state["thinking_spinner"], st.spinner(f"Extracting Transcript"):
-            result = st.session_state["agent"].ingest_youtube_transcript(youtube_link)
-
-        st.session_state["messages"].append((youtube_link, True))
-        st.session_state["messages"].append((result, False))
-
 
 def read_and_save_file():
     st.session_state["agent"].forget()
@@ -120,11 +108,6 @@ def main():
     )
 
     st.session_state["ingestion_spinner"] = st.empty()
-
-    st.subheader("Extract Transcript from YouTube Link")
-    st.text_input("Paste YouTube Link", key="youtube_link")
-    if st.button("Extract Transcript"):
-        process_youtube_link()
 
     display_messages()
     st.text_input("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set(), on_change=process_input)
