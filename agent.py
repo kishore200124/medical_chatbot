@@ -63,37 +63,40 @@ class Agent:
             try:
                 # Fetch the video transcript
                 transcript = YouTubeTranscriptApi.get_transcript(video_id)
-            except youtube_transcript_api.exceptions.VideoUnavailable:
-                return "Video is unavailable."
-            except youtube_transcript_api.exceptions.TranscriptNotFound:
-                return "Transcript not found for this video."
     
-            # Summarize the transcript into chapters (adjust this as needed)
-            chapters = []  # Each chapter is a list of transcript lines
-            current_chapter = []
-            chapter_length = 0  # Approximate number of characters per chapter
-            max_chapter_length = 2000  # Adjust this value as needed
+                # Check if the transcript is empty
+                if not transcript:
+                    return "Transcript is empty."
     
-            for line in transcript:
-                current_chapter.append(line["text"])
-                chapter_length += len(line["text"])
+                # Summarize the transcript into chapters (adjust this as needed)
+                chapters = []  # Each chapter is a list of transcript lines
+                current_chapter = []
+                chapter_length = 0  # Approximate number of characters per chapter
+                max_chapter_length = 2000  # Adjust this value as needed
     
-                if chapter_length >= max_chapter_length:
+                for line in transcript:
+                    current_chapter.append(line["text"])
+                    chapter_length += len(line["text"])
+    
+                    if chapter_length >= max_chapter_length:
+                        chapters.append("\n".join(current_chapter))
+                        current_chapter = []
+                        chapter_length = 0
+    
+                if current_chapter:
                     chapters.append("\n".join(current_chapter))
-                    current_chapter = []
-                    chapter_length = 0
     
-            if current_chapter:
-                chapters.append("\n".join(current_chapter))
+                # Store the transcript and chapters
+                self.youtube_transcripts[youtube_link] = chapters
     
-            # Store the transcript and chapters
-            self.youtube_transcripts[youtube_link] = chapters
+                # Ingest the chapters into the agent's knowledge base
+                for i, chapter in enumerate(chapters):
+                    self.ingest_text(chapter, f"Chapter {i + 1}")
     
-            # Ingest the chapters into the agent's knowledge base
-            for i, chapter in enumerate(chapters):
-                self.ingest_text(chapter, f"Chapter {i + 1}")
-    
-            return f"Transcript successfully ingested into {len(chapters)} chapters."
+                return f"Transcript successfully ingested into {len(chapters)} chapters."
+            
+            except Exception as e:
+                return str(e)
     
 
     def ingest_text(self, text: str, text_name: str) -> None:
