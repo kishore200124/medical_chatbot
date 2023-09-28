@@ -53,11 +53,19 @@ def process_input():
 def process_youtube_link():
     if st.session_state["youtube_link"] and len(st.session_state["youtube_link"].strip()) > 0:
         youtube_link = st.session_state["youtube_link"].strip()
+        
+        # Extract video ID from the YouTube link
+        video_id = youtube_link.split("?v=")[-1]
+        
+        # Modify the YouTube link to include only the video ID
+        youtube_link = f"https://www.youtube.com/watch?v={video_id}"
+
         with st.session_state["thinking_spinner"], st.spinner(f"Extracting Transcript"):
             result = st.session_state["agent"].ingest_youtube_transcript(youtube_link)
 
         st.session_state["messages"].append((youtube_link, True))
         st.session_state["messages"].append((result, False))
+
 
 def read_and_save_file():
     st.session_state["agent"].forget()
