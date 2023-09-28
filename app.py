@@ -3,6 +3,8 @@ import tempfile
 import streamlit as st
 from streamlit_chat import message
 from agent import Agent
+import pytube
+from pytube import YouTube
 
 # Set Streamlit page configuration
 st.set_page_config(
@@ -52,11 +54,9 @@ def process_input():
         st.session_state["messages"].append((user_text, True))
         st.session_state["messages"].append((agent_text, False))
 
+# Helper function to retrieve YouTube video transcription
 def retrieve_youtube_transcription(youtube_link):
     try:
-        import pytube
-        from pytube import YouTube
-
         # Extract video ID from the YouTube link
         video_id = pytube.extract.video_id(youtube_link)
 
@@ -86,17 +86,18 @@ def main():
     if len(st.session_state) == 0:
         st.session_state["messages"] = []
         st.session_state["OPENAI_API_KEY"] = os.environ.get("OPENAI_API_KEY", "")
-        if is_openai_api_key_set():
+        st.session_state["youtube_link"] = ""  # Initialize the YouTube link
+        if st.session_state["OPENAI_API_KEY"]:
             st.session_state["agent"] = Agent(st.session_state["OPENAI_API_KEY"])
         else:
             st.session_state["agent"] = None
 
     st.header("Medical ChatBot")
 
-    if st.text_input("OpenAI API Key", value=st.session_state["OPENAI_API_KEY"], key="input_OPENAI_API_KEY", type="password"):
+    if st.text_input("OpenAI API Key", value=st.session_state.get("OPENAI_API_KEY", ""), key="input_OPENAI_API_KEY", type="password"):
         if (
             len(st.session_state["input_OPENAI_API_KEY"]) > 0
-            and st.session_state["input_OPENAI_API_KEY"] != st.session_state["OPENAI_API_KEY"]
+            and st.session_state["input_OPENAI_API_KEY"] != st.session_state.get("OPENAI_API_KEY", "")
         ):
             st.session_state["OPENAI_API_KEY"] = st.session_state["input_OPENAI_API_KEY"]
             if st.session_state["agent"] is not None:
@@ -118,13 +119,13 @@ def main():
         on_change=read_and_save_file,
         label_visibility="collapsed",
         accept_multiple_files=True,
-        disabled=not is_openai_api_key_set(),
+        disabled=not st.session_state.get("OPENAI_API_KEY"),
     )
 
     st.session_state["ingestion_spinner"] = st.empty()
 
     display_messages()
-    st.text_input("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set(), on_change=process_input)
+    st.text_input("Ask a medical question", key="user_input", disabled=not st.session_state.get("OPENAI_API_KEY"), on_change=process_input)
 
     # YouTube Video Transcription Support
     st.subheader("Retrieve YouTube Video Transcription")
