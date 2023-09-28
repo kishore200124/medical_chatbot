@@ -100,7 +100,6 @@ class Agent:
             
             except Exception as e:
                 return str(e)
-    
 
     def ingest_text(self, text: str, text_name: str) -> None:
         documents = [text]
