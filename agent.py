@@ -21,6 +21,7 @@ class Agent:
         self.db = None
         self.current_pdf = None  # To keep track of the currently ingested PDF
         self.youtube_transcripts = {}  # To store YouTube transcripts and summaries
+        
 
     def ask(self, question: str) -> str:
         if self.chain is None:
@@ -57,13 +58,11 @@ class Agent:
             self.db.add_documents(splitted_documents)
 
     def ingest_youtube_transcript(self, youtube_link: str) -> str:
-        # Extract video ID from the YouTube link (if it's a full URL)
-        video_id = youtube_link.split("?v=")[-1]
-
-        # Remove any additional parameters if present
-        video_id = video_id.split("&")[0]
-
         try:
+            # Extract video ID from the YouTube link (if it's a full URL)
+            video_id = youtube_link.split("?v=")[-1]
+            video_id = video_id.split("&")[0]
+
             # Fetch the video transcript
             transcript = YouTubeTranscriptApi.get_transcript(video_id)
 
