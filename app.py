@@ -4,6 +4,7 @@ import streamlit as st
 from streamlit_chat import message
 from agent import Agent
 
+# Set Streamlit page configuration
 st.set_page_config(
     page_title="Medical ChatBot",
     page_icon="💉",
@@ -34,12 +35,14 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# Helper function to display chat messages
 def display_messages():
     st.subheader("Chat")
     for i, (msg, is_user) in enumerate(st.session_state["messages"]):
         message(msg, is_user=is_user, key=str(i))
     st.session_state["thinking_spinner"] = st.empty()
 
+# Helper function to process user input
 def process_input():
     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
         user_text = st.session_state["user_input"].strip()
@@ -49,25 +52,36 @@ def process_input():
         st.session_state["messages"].append((user_text, True))
         st.session_state["messages"].append((agent_text, False))
 
-def read_and_save_file():
-    st.session_state["agent"].forget()
-    st.session_state["messages"] = []
-    st.session_state["user_input"] = ""
+def retrieve_youtube_transcription(youtube_link):
+    try:
+        import pytube
+        from pytube import YouTube
 
-    for file in st.session_state["file_uploader"]:
-        with tempfile.NamedTemporaryFile(delete=False) as tf:
-            tf.write(file.getbuffer())
-            file_path = tf.name
+        # Extract video ID from the YouTube link
+        video_id = pytube.extract.video_id(youtube_link)
 
-        # Pass the PDF file name to the ingest method
-        pdf_name = file.name
-        with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {pdf_name}"):
-            st.session_state["agent"].ingest(file_path, pdf_name)
-        os.remove(file_path)
+        # Initialize YouTube object and fetch video
+        yt = YouTube(f'https://www.youtube.com/watch?v={video_id}')
+        yt_captions = yt.captions
 
-def is_openai_api_key_set() -> bool:
-    return len(st.session_state["OPENAI_API_KEY"]) > 0
+        # Search for English (auto-generated) caption track if available
+        caption = None
+        for track in yt_captions:
+            if 'en' in track.code:
+                caption = track
+                break
 
+        if caption:
+            transcription_text = caption.generate_srt_captions()
+            return transcription_text
+        else:
+            return None
+
+    except Exception as e:
+        st.error(f"Error retrieving YouTube transcription: {str(e)}")
+        return None
+
+# Main function
 def main():
     if len(st.session_state) == 0:
         st.session_state["messages"] = []
@@ -111,6 +125,12 @@ def main():
 
     display_messages()
     st.text_input("Ask a medical question", key="user_input", disabled=not is_openai_api_key_set(), on_change=process_input)
+
+    # YouTube Video Transcription Support
+    st.subheader("Retrieve YouTube Video Transcription")
+    st.text_input("Paste YouTube Link", key="youtube_link")
+    if st.button("Retrieve Transcription"):
+        process_youtube_link()
 
     st.divider()
 
