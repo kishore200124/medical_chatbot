@@ -56,9 +56,12 @@ class Agent:
         else:
             self.db.add_documents(splitted_documents)
 
-    def ingest_youtube_transcript(self, youtube_link: str) -> str:
-            # Extract video ID from the YouTube link
+     def ingest_youtube_transcript(self, youtube_link: str) -> str:
+            # Extract video ID from the YouTube link (if it's a full URL)
             video_id = youtube_link.split("?v=")[-1]
+    
+            # Remove any additional parameters if present
+            video_id = video_id.split("&")[0]
     
             try:
                 # Fetch the video transcript
