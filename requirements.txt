@@ -5,3 +5,5 @@ openai
 faiss-cpu
 pypdf
 tiktoken
+youtube_transcript_api
+gensim
