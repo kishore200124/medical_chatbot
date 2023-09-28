@@ -53,7 +53,24 @@ def process_input():
 
         st.session_state["messages"].append((user_text, True))
         st.session_state["messages"].append((agent_text, False))
+        
+def read_and_save_file():
+    st.session_state["agent"].forget()
+    st.session_state["messages"] = []
+    st.session_state["user_input"] = ""
+    st.session_state["youtube_link"] = ""  # Reset the YouTube link
 
+    for file in st.session_state["file_uploader"]:
+        with tempfile.NamedTemporaryFile(delete=False) as tf:
+            tf.write(file.getbuffer())
+            file_path = tf.name
+
+        # Pass the PDF file name to the ingest method
+        pdf_name = file.name
+        with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {pdf_name}"):
+            st.session_state["agent"].ingest_pdf(file_path, pdf_name)
+        os.remove(file_path)
+        
 # Helper function to retrieve YouTube video transcription
 def retrieve_youtube_transcription(youtube_link):
     try:
